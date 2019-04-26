@@ -66,7 +66,7 @@ module Cfhighlander
                 candidate = "#{sub_component.component_loaded.name}#{key}#{counter}"
                 counter = counter + 1
               end
-              actual_key = candidate
+              actual_key = candidate.delete('-').delete('_')
               # we need to replace all as
               # resources can reference conditions
               # outputs can and will reference resources
