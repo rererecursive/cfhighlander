@@ -99,11 +99,11 @@ module Cfhighlander
         output_path = "#{output_dir}/#{@component_name}.compiled.cfndsl.rb"
         FileUtils.mkdir_p(output_dir) unless Dir.exist?(output_dir)
         File.write(output_path, cfn_template)
-        puts "cfndsl template for #{dsl.name} written to #{output_path}"
+        $logger.debug "cfndsl template for #{dsl.name} written to #{output_path}"
         @cfndsl_compiled_path = output_path
 
         @sub_components.each {|subcomponent_compiler|
-          puts "Rendering sub-component cfndsl: #{subcomponent_compiler.component_name}"
+          $logger.debug "Rendering sub-component cfndsl: #{subcomponent_compiler.component_name}"
           subcomponent_compiler.compileCfnDsl out_format
         }
 
@@ -170,7 +170,7 @@ module Cfhighlander
 
         File.write(output_path, output_content)
         # `cfndsl #{@cfndsl_compiled_path} -p -f #{format} -o #{output_path} --disable-binding`
-        puts "CloudFormation #{format.upcase} template for #{dsl.name} written to #{output_path}"
+        $logger.debug "CloudFormation #{format.upcase} template for #{dsl.name} written to #{output_path}"
 
         return JSON.parse(model.to_json)
 
@@ -182,7 +182,7 @@ module Cfhighlander
         FileUtils.mkdir_p(@config_output_location) unless Dir.exist?(@config_output_location)
 
         File.write(config_yaml_path, @component.config.to_yaml)
-        puts "Config for #{@component.highlander_dsl.name} written to #{config_yaml_path}"
+        $logger.debug "Config for #{@component.highlander_dsl.name} written to #{config_yaml_path}"
 
         if write_subcomponents_config
           # compile sub-component templates
@@ -258,28 +258,28 @@ module Cfhighlander
           FileUtils.remove full_destination_path if File.exist? full_destination_path
 
           # download file if code remote archive
-          puts "INFO | Lambda #{name} | Start package process"
-          puts "INFO | Lambda #{name} | Destination is #{full_destination_path}"
+          $logger.info "Lambda #{name} | Start package process"
+          $logger.info "Lambda #{name} | Destination is #{full_destination_path}"
 
           md5 = Digest::MD5.new
           md5.update lambda_config['code']
           hash = md5.hexdigest
           cached_location = "#{ENV['HOME']}/.cfhighlander/cache/lambdas/#{hash}"
           if cached_downloads.key? lambda_config['code']
-            puts "INFO | Lambda #{name} | Using already downloaded archive #{lambda_config['code']}"
+            $logger.info "Lambda #{name} | Using already downloaded archive #{lambda_config['code']}"
             FileUtils.copy(cached_downloads[lambda_config['code']], full_destination_path)
           elsif File.file? cached_location
-            puts "INFO | Lambda #{name} | Using cache from #{cached_location}"
+            $logger.info "Lambda #{name} | Using cache from #{cached_location}"
             FileUtils.copy(cached_location, full_destination_path)
           else
             if lambda_config['code'].include? 'http'
-              puts "INFO | Lambda #{name} |  Downloading source from #{lambda_config['code']}"
+              $logger.info "Lambda #{name} |  Downloading source from #{lambda_config['code']}"
               download = open(lambda_config['code'])
               IO.copy_stream(download, "#{out_folder}/src.zip")
               FileUtils.mkdir_p("#{ENV['HOME']}/.cfhighlander/cache/lambdas")
               FileUtils.copy("#{out_folder}/src.zip", cached_location)
               FileUtils.copy("#{out_folder}/src.zip", full_destination_path)
-              puts "INFO | Lambda #{name} | source cached to #{cached_location}"
+              $logger.info "Lambda #{name} | source cached to #{cached_location}"
               cached_downloads[lambda_config['code']] = cached_location
             elsif lambda_config['code'].include? 's3://'
               parts = lambda_config['code'].split('/')
@@ -290,9 +290,9 @@ module Cfhighlander
               bucket = parts[2]
               key = parts.drop(3).join('/')
               s3 = Aws::S3::Client.new({ region: s3_bucket_region(bucket) })
-              puts "INFO | Lambda #{name} | Downloading source from #{lambda_config['code']}"
+              $logger.info "Lambda #{name} | Downloading source from #{lambda_config['code']}"
               s3.get_object({ bucket: bucket, key: key, response_target: cached_location })
-              puts "INFO | Lambda #{name} | source cached to #{cached_location}"
+              $logger.info "Lambda #{name} | source cached to #{cached_location}"
               FileUtils.copy(cached_location, full_destination_path)
               cached_downloads[lambda_config['code']] = cached_location
             else
@@ -328,7 +328,7 @@ module Cfhighlander
 
               # Lambda function source code allows pre-processing (e.g. install code dependencies)
               unless lambda_config['package_cmd'].nil?
-                puts "INFO | Lambda #{name} | Following code will be executed to generate lambda function #{name}:\n\n#{lambda_config['package_cmd']}\n\n"
+                $logger.info "Lambda #{name} | Following code will be executed to generate lambda function #{name}:\n\n#{lambda_config['package_cmd']}\n\n"
 
                 if @confirm_code_execution
                   exit -7 unless HighLine.agree('Proceed (y/n)?')
@@ -354,7 +354,7 @@ module Cfhighlander
           end
           sha256 = Digest::SHA256.file full_destination_path
           sha256 = sha256.base64digest
-          puts "INFO | Lambda #{name} | Created zip package #{full_destination_path} with digest #{sha256}"
+          $logger.info "Lambda #{name} | Created zip package #{full_destination_path} with digest #{sha256}"
           @metadata['sha256'][name] = sha256
           @metadata['version'][name] = timestamp
         end

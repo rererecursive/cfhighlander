@@ -16,7 +16,7 @@ module Cfhighlander
       def addParam(param)
         existing_param = @param_list.find {|p| p.name == param.name}
         if not existing_param.nil?
-          puts "Parameter being overwritten. Updating parameter #{param.name} with new definition..."
+          $logger.debug "Parameter being overwritten. Updating parameter #{param.name} with new definition..."
           @param_list[@param_list.index(existing_param)] = param
         else
           @param_list << param

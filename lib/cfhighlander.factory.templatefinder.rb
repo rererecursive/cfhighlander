@@ -2,6 +2,9 @@ LOCAL_CFHIGHLANDER_CACHE_LOCATION = "#{ENV['HOME']}/.cfhighlander/components"
 
 require_relative './cfhighlander.model.templatemeta'
 
+require 'logger'
+require 'colorize'
+
 module Cfhighlander
 
   module Factory
@@ -23,6 +26,7 @@ module Cfhighlander
         end
 
         @component_sources = component_sources
+
       end
 
       def findTemplateDefault(template_name, component_version)
@@ -66,7 +70,7 @@ module Cfhighlander
           end
 
           # shallow clone
-          puts "Trying to load #{component_name}/#{component_version} from #{git_url}##{branch} ... "
+          $logger.debug "Trying to load #{component_name}/#{component_version} from #{git_url}##{branch} ... "
           clone_opts = { depth: 1 }
           clone_opts[:branch] = branch if not (branch.nil? or branch.empty?)
           Git.clone git_url, cache_path, clone_opts
@@ -105,7 +109,7 @@ module Cfhighlander
 
             FileUtils.mkpath(destination_dir) unless File.exists?(destination_dir)
             s3.get_object({ bucket: bucket, key: s3_object.key, response_target: destination_file })
-            print " [OK] \n"
+            print " [OK] \n".green
           }
           if use_legacy_extension
             STDERR.puts "DEPRECATED: s3 load #{component_name} with *.highlander.rb template file name pattern"
@@ -214,12 +218,13 @@ module Cfhighlander
             candidate_cfhl_path = "#{candidate}/#{template_name}.cfhighlander.rb"
             candidate2_hl_path = "#{source}/#{template_name}.highlander.rb"
             candidate2_cfhl_path = "#{source}/#{template_name}.cfhighlander.rb"
-            puts "TRACE: Trying to load #{template_full_name} from #{candidate} ... "
+
+            $logger.debug "Trying to load #{template_full_name} from #{candidate} ... "
             if (File.exist?(candidate_hl_path) or File.exist?(candidate_cfhl_path))
               return build_meta(template_name, template_version_s, candidate)
             end
 
-            puts "TRACE: Trying to load #{template_full_name} from #{source} ... "
+            $logger.debug "Trying to load #{template_full_name} from #{source} ... "
             # if component version is latest it is allowed to search in path
             # with no version component in it
             if (File.exist?(candidate2_hl_path) or File.exist?(candidate2_cfhl_path))

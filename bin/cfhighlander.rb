@@ -18,6 +18,13 @@ require_relative '../lib/cfhighlander.validator'
 require_relative '../lib/cfhighlander.tests'
 require_relative '../hl_ext/aws_helper'
 
+$logger = Logger.new(STDOUT)
+$logger.formatter = proc do |severity, datetime, progname, msg|
+  "[#{severity}] - #{msg}\n"
+end
+$logger.level = Logger::WARN
+
+
 class HighlanderCli < Thor
 
   package_name "cfhighlander"
@@ -61,6 +68,7 @@ class HighlanderCli < Thor
     component_compiler = Cfhighlander::Compiler::ComponentCompiler.new(component)
     component_compiler.silent_mode = options[:quiet]
     out_format = options[:format]
+
     component_compiler.compileCfnDsl out_format
   end
 
@@ -78,6 +86,10 @@ class HighlanderCli < Thor
       :desc => 'Optionally validate template'
   method_option :quiet, :type => :boolean, :default => false, :aliases => '-q',
       :desc => 'Silently agree on user prompts (e.g. Package lambda command)'
+  method_option :verbose, :type => :boolean, :default => false, :aliases => '-i',
+      :desc => 'Verbose output (log level INFO)'
+  method_option :vverbose, :type => :boolean, :default => false, :aliases => '-d',
+      :desc => 'Verbose output (log level DEBUG)'
 
   def cfcompile(component_name = nil, autogenerate_dist = false)
 
@@ -89,6 +101,12 @@ class HighlanderCli < Thor
       else
         component_name = candidates[0].gsub('.cfhighlander.rb','')
       end
+    end
+
+    if options[:verbose]
+      $logger.level = Logger::INFO
+    elsif options[:vverbose]
+      $logger.level = Logger::DEBUG
     end
 
     component = build_component(options, component_name)

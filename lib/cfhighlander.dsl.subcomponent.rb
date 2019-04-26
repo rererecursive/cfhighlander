@@ -96,6 +96,8 @@ module Cfhighlander
             ComponentParam condition_param_name, enabled.to_s, allowedValues: %w(true false)
           end
         end
+
+
       end
 
       def version=(value)
@@ -181,7 +183,7 @@ module Cfhighlander
     class SubcomponentParamValueResolver
       def self.resolveValue(component, sub_component, param, available_outputs)
 
-        puts("INFO Resolving parameter #{component.name} -> #{sub_component.name}.#{param.name}: ")
+        $logger.debug "Resolving parameter #{component.name} -> #{sub_component.name}.#{param.name}: "
 
         # rule 0: this rule is here for legacy reasons and OutputParam. It should be deprecated
         # once all hl-components- repos remove any references to OutputParam
@@ -200,7 +202,7 @@ module Cfhighlander
 
         # rule 1: check if there are values defined on component itself
         if sub_component.param_values.key?(param.name)
-          puts " parameter value provided "
+          #puts " parameter value provided "
 
           param_value = sub_component.param_values[param.name]
           if param_value.is_a? String and param_value.include? '.'
@@ -228,7 +230,7 @@ module Cfhighlander
         # rule 1.1 mapping parameters are handled differently.
         # TODO wire mapping parameters outside of component
         if param.class == Cfhighlander::Dsl::MappingParam
-          puts " mapping parameter"
+          #puts " mapping parameter"
           mapping_param_value = self.resolveMappingParamValue(component, sub_component, param)
 
           # if mapping param is not resolved, e.g. mapping not provided
@@ -241,7 +243,7 @@ module Cfhighlander
         #          by parameter name
         if available_outputs.key? param.name
           component_name = available_outputs[param.name].component.name
-          puts " resolved as output of #{component_name}"
+          #puts " resolved as output of #{component_name}"
           return CfnDsl::Fn.new('GetAtt', [
               component_name,
               "Outputs.#{param.name}"
@@ -252,7 +254,7 @@ module Cfhighlander
         propagated_param = param.clone
         propagated_param.name = "#{sub_component.cfn_name}#{param.name}" unless param.is_global
         component.parameters.addParam propagated_param
-        puts " no autowiring candidates, propagate parameter to parent"
+        $logger.debug " no autowiring candidates, propagate parameter to parent"
         return CfnDsl::RefDefinition.new(propagated_param.name).to_json
 
       end

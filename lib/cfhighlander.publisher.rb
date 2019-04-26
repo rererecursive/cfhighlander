@@ -1,6 +1,7 @@
 require_relative './cfhighlander.compiler'
 require 'aws-sdk-s3'
 require 'uri'
+require 'colorize'
 module Cfhighlander
 
   module Publisher
@@ -26,7 +27,7 @@ module Cfhighlander
         existing_objects.contents.each do |s3obj|
           print "Deleting previously published #{s3obj.key} ..."
           s3.delete_object(bucket: bucket, key: s3obj.key)
-          print " [OK] \n"
+          print " [OK] \n".green
         end if @cleanup_destination
 
         @component.component_files.each do |file_path|
@@ -35,7 +36,7 @@ module Cfhighlander
             s3_key = "#{prefix}/#{@component.name}/#{version}/#{file_path}"
             print "Publish component file #{file_path} to s3://#{bucket}/#{s3_key} ... "
             s3.put_object(bucket: bucket, key: s3_key, body: file)
-            print " [OK] \n"
+            print " [OK] \n".green
           end
         end
 
@@ -73,15 +74,14 @@ module Cfhighlander
         file_list.each do |file|
           file_name = File.basename file
           s3_key = "#{prefix}/#{version}/#{file_name}"
-          print "\nPublishing #{file} to s3://#{bucket}/#{s3_key} ..."
+          puts "Publishing #{file} to s3://#{bucket}/#{s3_key} ..."
           s3.put_object({
               body: File.read(file),
               bucket: bucket,
               key: s3_key
           })
-          print ' [OK] '
+          puts '[OK]'.green
         end
-        print "\n"
 
       end
 

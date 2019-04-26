@@ -120,7 +120,7 @@ module Cfhighlander
           enabled: true,
           render: Cfhighlander::Model::Component::Substack,
           &block)
-        puts "INFO: Requested subcomponent #{name} with template #{template}"
+        $logger.debug "INFO: Requested subcomponent #{name} with template #{template}"
         if ((not template_arg.nil?) and template.nil?)
           template = template_arg
         elsif (template_arg.nil? and template.nil?)
@@ -316,7 +316,7 @@ module Cfhighlander
               if @config_overrides.key? component_name
                 @config_overrides[component_name].extend(component_config['config'])
               else
-                STDERR.puts("WARN: Overriding config for non-existing component #{component_name}")
+                $logger.debug "Overriding config for non-existing component #{component_name}"
               end
             end
           }
@@ -355,11 +355,11 @@ module Cfhighlander
                       if (not config_receiver_component.export_config.nil?) and (config_receiver_component.export_config.key? component.template)
                         allow_from_component_name = config_receiver_component.export_config[component.template]
                         if allow_from_component_name == component.name
-                          puts("INFO: Exporting key #{global_export_key} from component #{component.name} to #{cname}")
+                          $logger.debug "Exporting key #{global_export_key} from component #{component.name} to #{cname}"
                           co[global_export_key] = cl.config[global_export_key]
                         end
                       else
-                        puts("INFO: Exporting key #{global_export_key} from component #{component.name} to #{cname}")
+                        $logger.debug "Exporting key #{global_export_key} from component #{component.name} to #{cname}"
                         co[global_export_key] = cl.config[global_export_key]
                       end
                     end
@@ -383,18 +383,18 @@ module Cfhighlander
                     # override the config
                     real_component_name = component.export_config[component_name]
                     export_keys.each {|export_component_key|
-                      puts("Exporting config for key=#{export_component_key} from #{component.name} to #{real_component_name}")
+                      $logger.debug ("Exporting config for key=#{export_component_key} from #{component.name} to #{real_component_name}")
                       if not @config_overrides[real_component_name].key? export_component_key
                         @config_overrides[real_component_name][export_component_key] = {}
                       end
                       @config_overrides[real_component_name][export_component_key].extend(cl.config[export_component_key])
                     }
                   else
-                    STDERR.puts("Trying to export configuration for non-existant component #{component.export_config[component_name]}")
+                    STDERR.puts("Trying to export configuration for non-existent component #{component.export_config[component_name]}")
                   end
                 elsif @config_overrides.key? component_name
                   export_keys.each {|export_component_key|
-                    puts("Exporting config for key=#{export_component_key} from #{component.name} to #{component_name}")
+                    $logger.debug("Exporting config for key=#{export_component_key} from #{component.name} to #{component_name}")
                     if not @config_overrides[component_name].key? export_component_key
                       @config_overrides[component_name][export_component_key] = {}
                     end
@@ -456,12 +456,10 @@ def CfhighlanderTemplate(&block)
 
   if @parent_dsl.nil?
     instance = Cfhighlander::Dsl::HighlanderTemplate.new
-    puts "Processing higlander component #{@name}\n\tLocation:#{@highlander_dsl_path}" +
-        "\n\tConfig:#{@config}"
+    $logger.debug "Processing higlander component #{@name}\n\tLocation:#{@highlander_dsl_path}"
   else
     instance = @parent_dsl
-    puts "Processing higlander component #{@name}\n\tLocation:#{@highlander_dsl_path}" +
-        "\n\tConfig:#{@config}\n\tParent: #{@parent_template}"
+    $logger.debug "Processing higlander component #{@name}\n\tLocation:#{@highlander_dsl_path}"
   end
 
   instance.config = @config

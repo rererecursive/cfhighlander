@@ -1,6 +1,7 @@
 require 'aws-sdk-cloudformation'
 require 'aws-sdk-s3'
 require 'digest/md5'
+require 'colorize'
 require_relative '../hl_ext/aws_helper'
 
 module Cfhighlander
@@ -40,7 +41,7 @@ module Cfhighlander
         response = awscfn.validate_template({
             template_body: template
         })
-        puts 'SUCCESS'
+        puts '[SUCCESS]'.green
       end
 
       def validate_s3(path)
@@ -65,7 +66,7 @@ module Cfhighlander
         })
         puts "Delete s3://#{bucket}/#{s3_key}"
         s3.delete_object({ bucket: bucket, key: s3_key })
-        puts 'SUCCESS'
+        puts '[SUCCESS]'.green
 
       end
 

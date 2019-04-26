@@ -53,6 +53,7 @@ module Cfhighlander
         @parent_dsl = nil
         @potential_subcomponent_overrides = {}
         @is_parent_component = false
+
       end
 
       def distribution_bucket=(value)
@@ -73,10 +74,10 @@ module Cfhighlander
       def load_config()
         @config = {} if @config.nil?
         Dir["#{@component_dir}/*.config.yaml"].each do |config_file|
-          puts "INFO Loading config for #{@name}: read file:#{config_file} "
+          $logger.debug "Loading config for #{@name}: read file:#{config_file} "
           partial_config = YAML.load(File.read(config_file))
           if (not partial_config)
-            STDERR.puts "WARNING: Configuration file #{config_file} could not be loaded"
+            $logger.debug "Configuration file #{config_file} could not be loaded"
             next
           end
           unless (partial_config.nil? or partial_config.key? 'subcomponent_config_file')
@@ -224,7 +225,7 @@ module Cfhighlander
         if not cfhl_dsl.extended_template.nil?
           @parent_template = cfhl_dsl.extended_template
           inheritParentTemplate
-          puts "INFO: #{@template} extends #{@parent_template}, loading parent definition..."
+          $logger.debug "#{@template} extends #{@parent_template}, loading parent definition..."
           # 2nd pass, template instance is already created from parent
           @highlander_dsl = eval(cfhl_script, binding)
         else

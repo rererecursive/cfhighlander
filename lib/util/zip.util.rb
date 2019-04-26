@@ -17,7 +17,7 @@ module Cfhighlander
       # Zip the input directory.
       def write
         entries = Dir.entries(@input_dir) - %w(. ..)
-        puts "DEBUG: Compressing #{@input_dir} to #{@output_file}"
+        $logger.debug "DEBUG: Compressing #{@input_dir} to #{@output_file}"
         ::Zip::File.open(@output_file, ::Zip::File::CREATE) do |zipfile|
           write_entries entries, '', zipfile
         end
