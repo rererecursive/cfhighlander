@@ -30,5 +30,6 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency 'git', '~> 1.4', '<2'
   s.add_runtime_dependency 'netaddr', '~> 1.5', '>= 1.5.1'
   s.add_runtime_dependency 'duplicate','~> 1.1'
+  s.add_runtime_dependency 'colorize', '~> 0.8.1'
   s.add_development_dependency 'rspec', '~> 3.7'
 end
